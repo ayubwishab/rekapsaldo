@@ -8,23 +8,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- SheetJS (xlsx) CDN -->
+    <!-- SheetJS (xlsx) for Excel Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- jsPDF & AutoTable CDN -->
+    <!-- jsPDF & AutoTable for PDF Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- SweetAlert2 for Nice Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
                     colors: {
                         brand: {
                             50: '#f0f9ff',
@@ -41,1011 +36,798 @@
         }
     </script>
     <style>
-        /* Custom scrollbar for better visual feel */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
 
-    <!-- Header / Navbar -->
+    <!-- Header Section -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-sky-500 flex items-center justify-center text-white text-xl font-bold shadow">
-                    <i class="fa-solid me-0.5 fa-bolt"></i>
+                <div class="bg-brand-500 p-2.5 rounded-xl shadow-inner text-white">
+                    <i class="fa-solid fa-bolt text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg sm:text-xl font-bold leading-tight">Rekap Counter Pulsa</h1>
+                    <h1 class="text-xl font-bold tracking-tight">Rekap Counter Pulsa</h1>
                     <p class="text-xs text-slate-400">Pencatatan Penjualan Pulsa, PLN & Paket Data</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-2">
-                <button id="btnNewTransaction" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition flex items-center shadow-sm">
-                    <i class="fa-solid fa-plus mr-1.5"></i>
-                    <span class="hidden sm:inline">Tambah</span> Transaksi
+            
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <!-- Tombol Topup Saldo Deposit -->
+                <button onclick="openDepositModal()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>+ Isi Saldo</span>
+                </button>
+                
+                <!-- Tombol Tambah Transaksi -->
+                <button onclick="openModal()" class="flex-1 sm:flex-none bg-brand-500 hover:bg-brand-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Tambah Transaksi</span>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-grow space-y-6">
 
-        <!-- Dashboard Filter & Summary Cards -->
-        <section class="space-y-4">
-            <!-- Period Selection Filter -->
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center space-x-2 text-slate-700 font-semibold">
-                    <i class="fa-regular fa-calendar-days text-sky-600 text-lg"></i>
-                    <span>Filter Periode Rekap:</span>
+        <!-- Summary Cards / Dashboard Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Omset -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Omset / Jual</p>
+                    <h3 id="statOmset" class="text-2xl font-bold text-slate-800 mt-1">Rp 0</h3>
+                    <p id="statCount" class="text-xs text-slate-500 mt-1">0 Transaksi ditampilkan</p>
                 </div>
-                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                    <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <label for="filterMonth" class="text-xs text-slate-500 font-medium">Bulan:</label>
-                        <select id="filterMonth" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 flex-1">
-                            <option value="all">Semua Bulan</option>
-                            <option value="0">Januari</option>
-                            <option value="1">Februari</option>
-                            <option value="2">Maret</option>
-                            <option value="3">April</option>
-                            <option value="4">Mei</option>
-                            <option value="5">Juni</option>
-                            <option value="6">Juli</option>
-                            <option value="7">Agustus</option>
-                            <option value="8">September</option>
-                            <option value="9">Oktober</option>
-                            <option value="10">November</option>
-                            <option value="11">Desember</option>
-                        </select>
+                <div class="p-3 bg-brand-50 text-brand-600 rounded-xl">
+                    <i class="fa-solid fa-wallet text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Total Modal -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Modal Terpakai</p>
+                    <h3 id="statModal" class="text-2xl font-bold text-slate-800 mt-1">Rp 0</h3>
+                    <p class="text-xs text-slate-500 mt-1">Modal terpakai transaksi</p>
+                </div>
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                    <i class="fa-solid fa-coins text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Total Laba/Profit -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Laba / Profit</p>
+                    <h3 id="statProfit" class="text-2xl font-bold text-emerald-600 mt-1">Rp 0</h3>
+                    <p id="statMargin" class="text-xs text-slate-500 mt-1">Margin: 0%</p>
+                </div>
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <i class="fa-solid fa-chart-line text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Sisa Saldo Deposit -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sisa Saldo Deposit</p>
+                    <h3 id="statSisaSaldo" class="text-2xl font-bold text-indigo-600 mt-1">Rp 0</h3>
+                    <p id="statBelumLunas" class="text-xs text-rose-500 font-medium mt-1">Belum Dibayar: Rp 0</p>
+                </div>
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <i class="fa-solid fa-vault text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Control Section -->
+        <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-regular fa-calendar text-brand-600"></i>
+                        <span class="text-sm font-semibold text-slate-700">Filter Periode Rekap:</span>
                     </div>
-                    <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <label for="filterYear" class="text-xs text-slate-500 font-medium">Tahun:</label>
-                        <select id="filterYear" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 flex-1">
-                            <!-- Populated dynamically via JS -->
-                        </select>
+
+                    <!-- Filter Bulan -->
+                    <select id="filterMonth" onchange="renderTable()" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
+                        <option value="ALL">Semua Bulan</option>
+                        <option value="0">Januari</option>
+                        <option value="1">Februari</option>
+                        <option value="2">Maret</option>
+                        <option value="3">April</option>
+                        <option value="4">Mei</option>
+                        <option value="5">Juni</option>
+                        <option value="6">Juli</option>
+                        <option value="7">Agustus</option>
+                        <option value="8">September</option>
+                        <option value="9">Oktober</option>
+                        <option value="10">November</option>
+                        <option value="11">Desember</option>
+                    </select>
+
+                    <!-- Filter Tahun -->
+                    <select id="filterYear" onchange="renderTable()" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
+                        <!-- Filled by JS -->
+                    </select>
+
+                    <!-- Filter Tanggal Spesifik -->
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs text-slate-500 hidden sm:inline">Tanggal Spesifik:</span>
+                        <input type="date" id="filterDate" onchange="renderTable()" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2 focus:ring-brand-500 focus:border-brand-500 outline-none">
                     </div>
-                    <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <label for="filterSpecificDate" class="text-xs text-slate-500 font-medium">Tanggal Spesifik:</label>
-                        <input type="date" id="filterSpecificDate" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
-                    </div>
-                    <button id="btnResetFilter" title="Reset Filter" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm transition">
-                        <i class="fa-solid fa-rotate-right"></i> Reset
+
+                    <!-- Reset Filter -->
+                    <button onclick="resetFilters()" class="text-xs text-slate-500 hover:text-brand-600 underline px-2 py-1">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
                     </button>
                 </div>
             </div>
+        </div>
 
-            <!-- Summary Cards Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Total Omset -->
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">Total Omset / Jual</p>
-                        <h3 id="statOmset" class="text-2xl font-bold text-slate-800">Rp 0</h3>
-                        <p class="text-xs text-slate-400 mt-1" id="statCountTrx">0 Transaksi</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-wallet"></i>
-                    </div>
-                </div>
-
-                <!-- Total Modal -->
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">Total Modal</p>
-                        <h3 id="statModal" class="text-2xl font-bold text-slate-800">Rp 0</h3>
-                        <p class="text-xs text-slate-400 mt-1">Modal terpakai</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-coins"></i>
-                    </div>
-                </div>
-
-                <!-- Total Keuntungan / Profit -->
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">Total Laba / Profit</p>
-                        <h3 id="statProfit" class="text-2xl font-bold text-emerald-600">Rp 0</h3>
-                        <p class="text-xs text-emerald-600/70 font-medium mt-1" id="statMargin">Margin: 0%</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-chart-line"></i>
-                    </div>
-                </div>
-
-                <!-- Status Pembayaran -->
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">Status Bayar</p>
-                        <div class="flex items-center space-x-2 mt-1">
-                            <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-md text-xs font-semibold" id="statLunas">0 Lunas</span>
-                            <span class="px-2.5 py-1 bg-rose-100 text-rose-800 rounded-md text-xs font-semibold" id="statBelumLunas">0 Belum</span>
-                        </div>
-                        <p class="text-xs text-rose-500 mt-1.5 font-medium" id="statPiutang">Belum Dibayar: Rp 0</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Main Data Table Section -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <!-- Table Header Bar -->
-            <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <!-- Table Data Section -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            
+            <!-- Table Action Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">Riwayat & Rekapitulasi Transaksi</h2>
+                    <h2 class="font-bold text-slate-800 text-base">Riwayat & Rekapitulasi Transaksi</h2>
                     <p class="text-xs text-slate-500">Menampilkan seluruh data transaksi sesuai filter</p>
                 </div>
 
-                <!-- Action Controls: Search & Export -->
-                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                    <!-- Search input -->
-                    <div class="relative flex-1 sm:flex-initial">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="searchInput" placeholder="Cari produk / catatan..." class="w-full sm:w-48 pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                    <!-- Search Input -->
+                    <div class="relative flex-grow sm:flex-grow-0 sm:w-48">
+                        <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="Cari produk / catatan.." class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:ring-brand-500 focus:border-brand-500 outline-none">
+                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-xs text-slate-400"></i>
                     </div>
 
-                    <!-- Export Buttons -->
-                    <button id="btnExportExcel" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-medium rounded-lg transition flex items-center shadow-sm">
-                        <i class="fa-solid fa-file-excel mr-1.5"></i> Excel
+                    <!-- Export Excel -->
+                    <button onclick="exportToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Excel</span>
                     </button>
-                    <button id="btnExportPDF" class="px-3 py-1.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-medium rounded-lg transition flex items-center shadow-sm">
-                        <i class="fa-solid fa-file-pdf mr-1.5"></i> PDF
+
+                    <!-- Export PDF -->
+                    <button onclick="exportToPDF()" class="bg-rose-700 hover:bg-rose-800 text-white text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>PDF</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Responsive Table Container -->
+            <!-- Data Table -->
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse text-sm">
                     <thead>
-                        <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
-                            <th class="py-3 px-4">No. Urut</th>
-                            <th class="py-3 px-4">Waktu & Tanggal</th>
-                            <th class="py-3 px-4">Nama Produk</th>
-                            <th class="py-3 px-4 text-right">Harga Modal</th>
-                            <th class="py-3 px-4 text-right">Harga Jual</th>
-                            <th class="py-3 px-4 text-right">Untung / Profit</th>
-                            <th class="py-3 px-4 text-center">Status</th>
-                            <th class="py-3 px-4 text-center">Aksi</th>
+                        <tr class="bg-slate-50 text-slate-600 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+                            <th class="py-3.5 px-4 text-center">NO. URUT</th>
+                            <th class="py-3.5 px-4">WAKTU & TANGGAL</th>
+                            <th class="py-3.5 px-4">NAMA PRODUK</th>
+                            <th class="py-3.5 px-4 text-right">HARGA MODAL</th>
+                            <th class="py-3.5 px-4 text-right">HARGA JUAL</th>
+                            <th class="py-3.5 px-4 text-right">UNTUNG / PROFIT</th>
+                            <th class="py-3.5 px-4 text-center">STATUS</th>
+                            <th class="py-3.5 px-4 text-center">AKSI</th>
                         </tr>
                     </thead>
-                    <tbody id="transactionTableBody" class="divide-y divide-slate-200 text-sm">
-                        <!-- Dynamic Rows Injected by JS -->
+                    <tbody id="transactionTableBody" class="divide-y divide-slate-100 text-slate-700">
+                        <!-- Dynamic Rows -->
                     </tbody>
                 </table>
             </div>
 
-            <!-- Empty State Display -->
-            <div id="emptyState" class="hidden p-12 text-center">
-                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mx-auto mb-3 text-2xl">
-                    <i class="fa-regular fa-folder-open"></i>
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden py-12 text-center">
+                <div class="inline-flex p-4 bg-slate-100 text-slate-400 rounded-full mb-3">
+                    <i class="fa-solid fa-folder-open text-3xl"></i>
                 </div>
-                <h3 class="text-slate-700 font-semibold text-base">Tidak ada transaksi ditemukan</h3>
-                <p class="text-slate-500 text-xs mt-1">Silahkan tambahkan transaksi baru atau ganti filter pencarian Anda.</p>
+                <h4 class="font-medium text-slate-700 text-sm">Tidak ada transaksi ditemukan</h4>
+                <p class="text-xs text-slate-400 mt-1">Silahkan tambahkan transaksi baru atau ganti filter pencarian Anda.</p>
             </div>
 
-            <!-- Table Footer Stats Bar -->
-            <div class="bg-slate-50 p-4 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-600 gap-2">
-                <div>
-                    Menampilkan <span id="displayedRowsCount" class="font-bold text-slate-800">0</span> dari <span id="totalRowsCount" class="font-bold text-slate-800">0</span> total transaksi.
-                </div>
-                <div class="font-medium">
-                    Total Profit Tampil: <span id="visibleProfitSum" class="text-emerald-600 font-bold">Rp 0</span>
-                </div>
+            <!-- Table Footer Stats Summary -->
+            <div class="bg-slate-50 px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-2">
+                <span id="showingCount">Menampilkan 0 dari 0 total transaksi.</span>
+                <span id="filteredProfit" class="font-bold text-emerald-600">Total Profit Tampil: Rp 0</span>
             </div>
-        </section>
+        </div>
+
     </main>
 
-    <!-- Modal Form (Input / Edit Transaction) -->
-    <div id="transactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all">
-            <!-- Modal Header -->
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-500">
+        <p>&copy; <span id="currentYear"></span> Counter Pulsa App - Rekapitulasi Penjualan Harian & Bulanan.</p>
+    </footer>
+
+    <!-- Modal Form (Tambah/Edit Transaksi) -->
+    <div id="transactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden transform transition-all">
+            
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
-                <h3 id="modalTitle" class="font-bold text-lg">Tambah Transaksi Baru</h3>
-                <button id="btnCloseModal" class="text-slate-400 hover:text-white transition focus:outline-none">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+                <h3 id="modalTitle" class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-cart-plus text-brand-500"></i>
+                    <span>Tambah Transaksi Baru</span>
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <!-- Modal Form Body -->
-            <form id="transactionForm" class="p-6 space-y-4">
-                <input type="hidden" id="editTrxId" value="">
+            <form id="transactionForm" onsubmit="saveTransaction(event)" class="p-6 space-y-4">
+                <input type="hidden" id="transId">
 
-                <!-- No Urut & Tanggal / Jam -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="trxDailyNo" class="block text-xs font-semibold text-slate-600 uppercase mb-1">No. Urut Harian</label>
-                        <input type="number" id="trxDailyNo" required readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 focus:outline-none cursor-not-allowed">
-                        <span class="text-[10px] text-slate-400">Otomatis dihitung sesuai tanggal</span>
-                    </div>
-                    <div>
-                        <label for="trxDateTime" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tanggal & Waktu</label>
-                        <input type="datetime-local" id="trxDateTime" required class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
-                    </div>
-                </div>
-
-                <!-- Nama / Jenis Produk -->
                 <div>
-                    <label for="trxProductName" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama / Jenis Produk</label>
-                    <input type="text" id="trxProductName" placeholder="misal: Pulsa Telkomsel 25k, Kuota XL 10GB, Token PLN 50k" required class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal & Waktu</label>
+                    <input type="datetime-local" id="transDatetime" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-brand-500 focus:border-brand-500 outline-none">
                 </div>
 
-                <!-- Modal, Jual, Untung -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label for="trxCostPrice" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Harga Modal (Rp)</label>
-                        <input type="number" id="trxCostPrice" min="0" placeholder="24500" required class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label for="trxSellPrice" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Harga Jual (Rp)</label>
-                        <input type="number" id="trxSellPrice" min="0" placeholder="27000" required class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label for="trxProfit" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Untung (Rp)</label>
-                        <input type="number" id="trxProfit" readonly class="w-full bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold rounded-lg px-3 py-2 text-sm focus:outline-none cursor-not-allowed">
-                    </div>
-                </div>
-
-                <!-- Status Pembayaran -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Status Pembayaran</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="border rounded-lg p-3 flex items-center justify-center space-x-2 cursor-pointer transition has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 has-[:checked]:text-emerald-700">
-                            <input type="radio" name="paymentStatus" value="Lunas" checked class="text-emerald-600 focus:ring-emerald-500">
-                            <span class="text-sm font-semibold">Lunas</span>
-                        </label>
-                        <label class="border rounded-lg p-3 flex items-center justify-center space-x-2 cursor-pointer transition has-[:checked]:bg-rose-50 has-[:checked]:border-rose-500 has-[:checked]:text-rose-700">
-                            <input type="radio" name="paymentStatus" value="Belum Lunas" class="text-rose-600 focus:ring-rose-500">
-                            <span class="text-sm font-semibold">Belum Lunas</span>
-                        </label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Produk / Layanan</label>
+                    <input type="text" id="transProduct" placeholder="Misal: Pulsa Telkomsel 50k, Token PLN 100k" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-brand-500 focus:border-brand-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Modal (Rp)</label>
+                        <input type="number" id="transCost" placeholder="50500" required oninput="calculateProfit()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-brand-500 focus:border-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Harga Jual (Rp)</label>
+                        <input type="number" id="transPrice" placeholder="53000" required oninput="calculateProfit()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-brand-500 focus:border-brand-500 outline-none">
                     </div>
                 </div>
 
-                <!-- Catatan / Keterangan Pembeli (Optional) -->
-                <div>
-                    <label for="trxNotes" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Catatan Tambahan (Opsional)</label>
-                    <input type="text" id="trxNotes" placeholder="Nomor HP Pembeli / Nama Pembeli" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <!-- Preview Profit Automatic -->
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-medium">Estimasi Profit:</span>
+                    <span id="transProfitPreview" class="font-bold text-emerald-600 text-sm">Rp 0</span>
                 </div>
 
-                <!-- Actions -->
-                <div class="pt-4 border-t border-slate-200 flex justify-end space-x-3">
-                    <button type="button" id="btnCancelModal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition">
-                        Batal
-                    </button>
-                    <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg shadow transition flex items-center">
-                        <i class="fa-solid fa-floppy-disk mr-2"></i> Simpan Transaksi
-                    </button>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Status Pembayaran</label>
+                    <select id="transStatus" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-brand-500 focus:border-brand-500 outline-none">
+                        <option value="LUNAS">LUNAS (Sudah Bayar)</option>
+                        <option value="BELUM LUNAS">BELUM LUNAS (Hutang/Kass)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan Tambahan (Opsional)</label>
+                    <input type="text" id="transNote" placeholder="No HP / ID Pelanggan / Nama Pembeli" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-brand-500 focus:border-brand-500 outline-none">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white rounded-lg shadow-sm transition">Simpan Transaksi</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Modal Top Up Deposit Saldo -->
+    <div id="depositModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full overflow-hidden transform transition-all">
+            <div class="bg-emerald-600 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-wallet text-emerald-200"></i>
+                    <span>Isi / Top Up Saldo Deposit</span>
+                </h3>
+                <button onclick="closeDepositModal()" class="text-emerald-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="saveDeposit(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nominal Tambah Saldo (Rp)</label>
+                    <input type="number" id="depositAmount" placeholder="Contoh: 500000" min="1" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    <p class="text-[11px] text-slate-400 mt-1">Saldo ini akan otomatis berkurang sebesar <b>Harga Modal</b> setiap Anda melakukan transaksi penjualan.</p>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeDepositModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm transition">Tambah Saldo</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-            &copy; <span id="currentYear"></span> Counter Pulsa App - Rekapitulasi Penjualan Harian & Bulanan.
-        </div>
-    </footer>
-
-    <!-- JavaScript Logic -->
+    <!-- Application Script -->
     <script>
-        // Storage Key for LocalStorage
-        const STORAGE_KEY = 'PULSA_REKAP_TRANSACTIONS_V1';
+        // State management with LocalStorage
+        let transactions = JSON.parse(localStorage.getItem('counter_pulsa_transactions')) || [];
+        let totalDeposit = parseFloat(localStorage.getItem('counter_pulsa_deposit')) || 0;
 
-        // State Management
-        let transactions = [];
-        let filteredTransactions = [];
-
-        // DOM Elements
-        const transactionTableBody = document.getElementById('transactionTableBody');
-        const emptyState = document.getElementById('emptyState');
-        const transactionModal = document.getElementById('transactionModal');
-        const transactionForm = document.getElementById('transactionForm');
-        
-        // Form Inputs
-        const editTrxId = document.getElementById('editTrxId');
-        const trxDailyNo = document.getElementById('trxDailyNo');
-        const trxDateTime = document.getElementById('trxDateTime');
-        const trxProductName = document.getElementById('trxProductName');
-        const trxCostPrice = document.getElementById('trxCostPrice');
-        const trxSellPrice = document.getElementById('trxSellPrice');
-        const trxProfit = document.getElementById('trxProfit');
-        const trxNotes = document.getElementById('trxNotes');
-        
-        // Filter Elements
-        const filterMonth = document.getElementById('filterMonth');
-        const filterYear = document.getElementById('filterYear');
-        const filterSpecificDate = document.getElementById('filterSpecificDate');
-        const searchInput = document.getElementById('searchInput');
-
-        // Stats Elements
-        const statOmset = document.getElementById('statOmset');
-        const statModal = document.getElementById('statModal');
-        const statProfit = document.getElementById('statProfit');
-        const statMargin = document.getElementById('statMargin');
-        const statCountTrx = document.getElementById('statCountTrx');
-        const statLunas = document.getElementById('statLunas');
-        const statBelumLunas = document.getElementById('statBelumLunas');
-        const statPiutang = document.getElementById('statPiutang');
-        const displayedRowsCount = document.getElementById('displayedRowsCount');
-        const totalRowsCount = document.getElementById('totalRowsCount');
-        const visibleProfitSum = document.getElementById('visibleProfitSum');
-
-        // Initialize Application
+        // Initialize App
         document.addEventListener('DOMContentLoaded', () => {
+            // Set current year dynamically
             document.getElementById('currentYear').textContent = new Date().getFullYear();
-            loadTransactionsFromStorage();
-            populateYearFilterOptions();
-            setDefaultFilterToCurrentMonth();
-            setupEventListeners();
-            render();
+            
+            initYearFilter();
+            renderTable();
         });
 
-        // Load data from LocalStorage
-        function loadTransactionsFromStorage() {
-            const data = localStorage.getItem(STORAGE_KEY);
-            if (data) {
-                try {
-                    transactions = JSON.parse(data);
-                } catch (e) {
-                    console.error("Gagal membaca LocalStorage", e);
-                    transactions = [];
-                }
-            } else {
-                // Initial Sample Data if empty
-                transactions = getSampleData();
-                saveTransactionsToStorage();
+        // Initialize Year Select Options dynamically
+        function initYearFilter() {
+            const yearSelect = document.getElementById('filterYear');
+            const currentYear = new Date().getFullYear();
+            yearSelect.innerHTML = `<option value="ALL">Semua Tahun</option>`;
+            
+            // Generate list from current year down to 3 years back
+            for (let y = currentYear + 1; y >= currentYear - 3; y--) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === currentYear) opt.selected = true;
+                yearSelect.appendChild(opt);
             }
         }
 
         // Save data to LocalStorage
-        function saveTransactionsToStorage() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+        function saveData() {
+            localStorage.setItem('counter_pulsa_transactions', JSON.stringify(transactions));
+            localStorage.setItem('counter_pulsa_deposit', totalDeposit.toString());
         }
 
-        // Sample Data for first-time setup
-        function getSampleData() {
-            const now = new Date();
-            const dateStr = now.toISOString().slice(0, 10);
-            
-            return [
-                {
-                    id: 'trx-1',
-                    dailyNo: 1,
-                    dateTime: `${dateStr}T08:30`,
-                    productName: 'Pulsa Telkomsel 50.000',
-                    costPrice: 49500,
-                    sellPrice: 52000,
-                    profit: 2500,
-                    status: 'Lunas',
-                    notes: '081234567890'
-                },
-                {
-                    id: 'trx-2',
-                    dailyNo: 2,
-                    dateTime: `${dateStr}T09:15`,
-                    productName: 'Token PLN 100.000',
-                    costPrice: 100500,
-                    sellPrice: 103000,
-                    profit: 2500,
-                    status: 'Lunas',
-                    notes: 'No Meter: 3201928192'
-                },
-                {
-                    id: 'trx-3',
-                    dailyNo: 3,
-                    dateTime: `${dateStr}T10:45`,
-                    productName: 'Kuota XL Freedom 24GB',
-                    costPrice: 58000,
-                    sellPrice: 65000,
-                    profit: 7000,
-                    status: 'Belum Lunas',
-                    notes: 'Pak Budi (Bayar sore)'
-                }
-            ];
+        // Format Currency Helper
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
         }
 
-        // Event Listeners Registration
-        function setupEventListeners() {
-            // Modal Toggles
-            document.getElementById('btnNewTransaction').addEventListener('click', () => openModal());
-            document.getElementById('btnCloseModal').addEventListener('click', closeModal);
-            document.getElementById('btnCancelModal').addEventListener('click', closeModal);
-
-            // Auto Calculate Profit in Form
-            trxCostPrice.addEventListener('input', calculateFormProfit);
-            trxSellPrice.addEventListener('input', calculateFormProfit);
-
-            // Auto calculate Daily No on Date Change in Form
-            trxDateTime.addEventListener('change', updateDailyNumberForFormDate);
-
-            // Form Submit
-            transactionForm.addEventListener('submit', handleFormSubmit);
-
-            // Filters & Search
-            filterMonth.addEventListener('change', () => {
-                filterSpecificDate.value = ''; // Reset specific date if month filter is touched
-                render();
-            });
-            filterYear.addEventListener('change', () => {
-                filterSpecificDate.value = '';
-                render();
-            });
-            filterSpecificDate.addEventListener('change', () => {
-                render();
-            });
-            searchInput.addEventListener('input', render);
-
-            document.getElementById('btnResetFilter').addEventListener('click', () => {
-                filterSpecificDate.value = '';
-                setDefaultFilterToCurrentMonth();
-                searchInput.value = '';
-                render();
-            });
-
-            // Export Buttons
-            document.getElementById('btnExportExcel').addEventListener('click', exportToExcel);
-            document.getElementById('btnExportPDF').addEventListener('click', exportToPDF);
-        }
-
-        // Set Default Month/Year filter to Current Month
-        function setDefaultFilterToCurrentMonth() {
-            const today = new Date();
-            filterMonth.value = today.getMonth().toString();
-            filterYear.value = today.getFullYear().toString();
-        }
-
-        // Populate Year Options dynamically based on data
-        function populateYearFilterOptions() {
-            const currentYear = new Date().getFullYear();
-            const years = new Set([currentYear, currentYear - 1, currentYear + 1]);
-
-            // Add years from data
-            transactions.forEach(t => {
-                if (t.dateTime) {
-                    const y = new Date(t.dateTime).getFullYear();
-                    if (!isNaN(y)) years.add(y);
-                }
-            });
-
-            const sortedYears = Array.from(years).sort((a, b) => b - a);
-            filterYear.innerHTML = sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
-        }
-
-        // Calculate Form Profit
-        function calculateFormProfit() {
-            const cost = parseFloat(trxCostPrice.value) || 0;
-            const sell = parseFloat(trxSellPrice.value) || 0;
-            trxProfit.value = sell - cost;
-        }
-
-        // Calculate Daily Sequence Number for a specific Date
-        function getNextDailyNumber(dateTimeStr, currentEditId = null) {
-            if (!dateTimeStr) return 1;
-            const targetDateStr = dateTimeStr.split('T')[0];
-
-            // Filter transactions on the same date excluding current edit item
-            const sameDayTrx = transactions.filter(t => {
-                if (currentEditId && t.id === currentEditId) return false;
-                return t.dateTime && t.dateTime.startsWith(targetDateStr);
-            });
-
-            if (sameDayTrx.length === 0) return 1;
-
-            const maxNo = Math.max(...sameDayTrx.map(t => t.dailyNo || 0));
-            return maxNo + 1;
-        }
-
-        // Update Daily Number when DateTime input changes
-        function updateDailyNumberForFormDate() {
-            if (!editTrxId.value) { // Only auto-update if creating new transaction
-                const dailyNo = getNextDailyNumber(trxDateTime.value);
-                trxDailyNo.value = dailyNo;
-            }
-        }
-
-        // Open Modal (Add or Edit Mode)
-        function openModal(trx = null) {
-            transactionForm.reset();
-            
-            if (trx) {
-                // Edit Mode
-                document.getElementById('modalTitle').textContent = 'Edit Transaksi Penjualan';
-                editTrxId.value = trx.id;
-                trxDailyNo.value = trx.dailyNo;
-                trxDateTime.value = trx.dateTime;
-                trxProductName.value = trx.productName;
-                trxCostPrice.value = trx.costPrice;
-                trxSellPrice.value = trx.sellPrice;
-                trxProfit.value = trx.profit;
-                trxNotes.value = trx.notes || '';
-
-                const statusRadios = document.getElementsByName('paymentStatus');
-                for (let radio of statusRadios) {
-                    if (radio.value === trx.status) radio.checked = true;
-                }
-            } else {
-                // New Transaction Mode
-                document.getElementById('modalTitle').textContent = 'Tambah Transaksi Baru';
-                editTrxId.value = '';
-                
-                // Set current datetime default
-                const now = new Date();
-                // Format: YYYY-MM-DDTHH:mm
-                const nowFormatted = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-                trxDateTime.value = nowFormatted;
-
-                // Auto sequence number
-                trxDailyNo.value = getNextDailyNumber(nowFormatted);
-                trxProfit.value = 0;
-            }
-
-            transactionModal.classList.remove('hidden');
-        }
-
-        // Close Modal
-        function closeModal() {
-            transactionModal.classList.add('hidden');
-        }
-
-        // Handle Form Submission
-        function handleFormSubmit(e) {
-            e.preventDefault();
-
-            const isEdit = Boolean(editTrxId.value);
-            const statusValue = document.querySelector('input[name="paymentStatus"]:checked').value;
-
-            const formData = {
-                id: isEdit ? editTrxId.value : 'trx-' + Date.now(),
-                dailyNo: parseInt(trxDailyNo.value) || 1,
-                dateTime: trxDateTime.value,
-                productName: trxProductName.value.trim(),
-                costPrice: parseFloat(trxCostPrice.value) || 0,
-                sellPrice: parseFloat(trxSellPrice.value) || 0,
-                profit: parseFloat(trxProfit.value) || 0,
-                status: statusValue,
-                notes: trxNotes.value.trim()
+        // Format Date Time Helper
+        function formatDateTime(isoString) {
+            const date = new Date(isoString);
+            return {
+                dateStr: date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                timeStr: date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                rawDate: date
             };
+        }
 
-            if (isEdit) {
-                const index = transactions.findIndex(t => t.id === formData.id);
-                if (index !== -1) transactions[index] = formData;
+        // Open & Close Modal Functions
+        function openModal(editId = null) {
+            const modal = document.getElementById('transactionModal');
+            const form = document.getElementById('transactionForm');
+            const modalTitle = document.getElementById('modalTitle');
+
+            if (editId) {
+                const item = transactions.find(t => t.id === editId);
+                if (!item) return;
+                document.getElementById('transId').value = item.id;
+                document.getElementById('transDatetime').value = item.datetime;
+                document.getElementById('transProduct').value = item.product;
+                document.getElementById('transCost').value = item.cost;
+                document.getElementById('transPrice').value = item.price;
+                document.getElementById('transStatus').value = item.status;
+                document.getElementById('transNote').value = item.note || '';
+                modalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-brand-500"></i><span>Edit Transaksi</span>`;
             } else {
-                transactions.unshift(formData); // Add to beginning
+                form.reset();
+                document.getElementById('transId').value = '';
+                // Set default to current datetime
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                document.getElementById('transDatetime').value = now.toISOString().slice(0, 16);
+                modalTitle.innerHTML = `<i class="fa-solid fa-cart-plus text-brand-500"></i><span>Tambah Transaksi Baru</span>`;
             }
 
-            saveTransactionsToStorage();
-            populateYearFilterOptions();
-            closeModal();
-            render();
+            calculateProfit();
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('transactionModal').classList.add('hidden');
+        }
+
+        function openDepositModal() {
+            document.getElementById('depositModal').classList.remove('hidden');
+        }
+
+        function closeDepositModal() {
+            document.getElementById('depositModal').classList.add('hidden');
+        }
+
+        function saveDeposit(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
+            if (amount <= 0) return;
+
+            totalDeposit += amount;
+            saveData();
+            closeDepositModal();
+            document.getElementById('depositAmount').value = '';
 
             Swal.fire({
                 icon: 'success',
-                title: isEdit ? 'Transaksi Diperbarui' : 'Transaksi Disimpan',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000
+                title: 'Saldo Berhasil Ditambah',
+                text: `Saldo deposit bertambah ${formatRupiah(amount)}`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            renderTable();
+        }
+
+        // Calculate Profit Preview in Form
+        function calculateProfit() {
+            const cost = parseFloat(document.getElementById('transCost').value) || 0;
+            const price = parseFloat(document.getElementById('transPrice').value) || 0;
+            const profit = price - cost;
+            const previewEl = document.getElementById('transProfitPreview');
+
+            previewEl.textContent = formatRupiah(profit);
+            if (profit < 0) {
+                previewEl.className = "font-bold text-rose-600 text-sm";
+            } else {
+                previewEl.className = "font-bold text-emerald-600 text-sm";
+            }
+        }
+
+        // Save / Update Transaction
+        function saveTransaction(e) {
+            e.preventDefault();
+            const id = document.getElementById('transId').value;
+            const datetime = document.getElementById('transDatetime').value;
+            const product = document.getElementById('transProduct').value;
+            const cost = parseFloat(document.getElementById('transCost').value) || 0;
+            const price = parseFloat(document.getElementById('transPrice').value) || 0;
+            const status = document.getElementById('transStatus').value;
+            const note = document.getElementById('transNote').value;
+            const profit = price - cost;
+
+            if (id) {
+                // Update
+                const index = transactions.findIndex(t => t.id === id);
+                if (index !== -1) {
+                    transactions[index] = { id, datetime, product, cost, price, profit, status, note };
+                }
+            } else {
+                // Insert New
+                const newTrans = {
+                    id: 'TRX-' + Date.now(),
+                    datetime,
+                    product,
+                    cost,
+                    price,
+                    profit,
+                    status,
+                    note
+                };
+                transactions.push(newTrans);
+            }
+
+            // Sort transactions chronologically
+            transactions.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+            saveData();
+            closeModal();
+            renderTable();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil Disimpan',
+                text: 'Data transaksi berhasil diperbarui!',
+                timer: 1500,
+                showConfirmButton: false
             });
         }
 
-        // Toggle Payment Status directly from table
-        function togglePaymentStatus(id) {
-            const trx = transactions.find(t => t.id === id);
-            if (trx) {
-                trx.status = trx.status === 'Lunas' ? 'Belum Lunas' : 'Lunas';
-                saveTransactionsToStorage();
-                render();
-
-                Swal.fire({
-                    icon: 'info',
-                    title: `Status diubah ke ${trx.status}`,
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
+        // Toggle Status Payment (LUNAS / BELUM LUNAS)
+        function toggleStatus(id) {
+            const index = transactions.findIndex(t => t.id === id);
+            if (index !== -1) {
+                transactions[index].status = transactions[index].status === 'LUNAS' ? 'BELUM LUNAS' : 'LUNAS';
+                saveData();
+                renderTable();
             }
         }
 
         // Delete Transaction
         function deleteTransaction(id) {
             Swal.fire({
-                title: 'Hapus Transaksi?',
-                text: "Data transaksi ini akan dihapus secara permanen!",
+                title: 'Apakah Anda yakin?',
+                text: "Data transaksi akan dihapus secara permanen!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#e11d48',
+                confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#64748b',
                 confirmButtonText: 'Ya, Hapus!',
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
                     transactions = transactions.filter(t => t.id !== id);
-                    saveTransactionsToStorage();
-                    render();
-
+                    saveData();
+                    renderTable();
                     Swal.fire({
                         icon: 'success',
                         title: 'Terhapus!',
                         text: 'Transaksi telah dihapus.',
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 2000
+                        timer: 1200,
+                        showConfirmButton: false
                     });
                 }
             });
         }
 
-        // Apply Filters and Search to Transactions Data
-        function applyFilters() {
-            const selectedMonth = filterMonth.value;
-            const selectedYear = filterYear.value;
-            const specificDate = filterSpecificDate.value;
-            const searchKeyword = searchInput.value.toLowerCase().trim();
+        // Reset Filters
+        function resetFilters() {
+            document.getElementById('filterMonth').value = 'ALL';
+            document.getElementById('filterYear').value = new Date().getFullYear();
+            document.getElementById('filterDate').value = '';
+            document.getElementById('searchInput').value = '';
+            renderTable();
+        }
 
-            filteredTransactions = transactions.filter(trx => {
-                const trxDate = new Date(trx.dateTime);
-                if (isNaN(trxDate)) return false;
+        // Get Filtered Data
+        function getFilteredData() {
+            const monthVal = document.getElementById('filterMonth').value;
+            const yearVal = document.getElementById('filterYear').value;
+            const dateVal = document.getElementById('filterDate').value;
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
 
-                // 1. Specific Date Filter (if set)
-                if (specificDate) {
-                    const trxDateOnly = trx.dateTime.split('T')[0];
-                    if (trxDateOnly !== specificDate) return false;
+            return transactions.filter(item => {
+                const itemDate = new Date(item.datetime);
+
+                // Filter Date Exact
+                if (dateVal) {
+                    const itemDateStr = item.datetime.split('T')[0];
+                    if (itemDateStr !== dateVal) return false;
                 } else {
-                    // 2. Month & Year Filter
-                    if (selectedMonth !== 'all' && trxDate.getMonth().toString() !== selectedMonth) {
+                    // Filter Month
+                    if (monthVal !== 'ALL' && itemDate.getMonth() !== parseInt(monthVal)) {
                         return false;
                     }
-                    if (selectedYear && trxDate.getFullYear().toString() !== selectedYear) {
+                    // Filter Year
+                    if (yearVal !== 'ALL' && itemDate.getFullYear() !== parseInt(yearVal)) {
                         return false;
                     }
                 }
 
-                // 3. Search Filter
-                if (searchKeyword) {
-                    const matchName = trx.productName.toLowerCase().includes(searchKeyword);
-                    const matchNotes = (trx.notes || '').toLowerCase().includes(searchKeyword);
-                    const matchStatus = trx.status.toLowerCase().includes(searchKeyword);
-                    if (!matchName && !matchNotes && !matchStatus) return false;
+                // Filter Search Query
+                if (searchVal) {
+                    const matchProduct = item.product.toLowerCase().includes(searchVal);
+                    const matchNote = (item.note || '').toLowerCase().includes(searchVal);
+                    const matchStatus = item.status.toLowerCase().includes(searchVal);
+                    if (!matchProduct && !matchNote && !matchStatus) return false;
                 }
 
                 return true;
             });
-
-            // Sort by Date Descending
-            filteredTransactions.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
         }
 
-        // Render Dashboard Statistics & Table
-        function render() {
-            applyFilters();
-
-            // Render Table
-            renderTable();
-
-            // Update Stats Cards
-            updateStatistics();
-        }
-
-        // Render Table Rows
+        // Render Table & Recalculate Stats & Daily Sequence
         function renderTable() {
-            transactionTableBody.innerHTML = '';
+            const filteredData = getFilteredData();
+            const tbody = document.getElementById('transactionTableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
 
-            if (filteredTransactions.length === 0) {
+            if (filteredData.length === 0) {
                 emptyState.classList.remove('hidden');
             } else {
                 emptyState.classList.add('hidden');
-
-                filteredTransactions.forEach(trx => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
-
-                    const formattedDate = formatDateTime(trx.dateTime);
-                    const isLunas = trx.status === 'Lunas';
-
-                    tr.innerHTML = `
-                        <td class="py-3 px-4 font-bold text-slate-700">#${trx.dailyNo}</td>
-                        <td class="py-3 px-4 whitespace-nowrap">
-                            <div class="text-xs font-semibold text-slate-800">${formattedDate.date}</div>
-                            <div class="text-[11px] text-slate-400">${formattedDate.time} WIB</div>
-                        </td>
-                        <td class="py-3 px-4">
-                            <div class="font-semibold text-slate-800">${escapeHtml(trx.productName)}</div>
-                            ${trx.notes ? `<div class="text-xs text-slate-400 font-normal"><i class="fa-regular fa-note-sticky mr-1"></i>${escapeHtml(trx.notes)}</div>` : ''}
-                        </td>
-                        <td class="py-3 px-4 text-right text-slate-600 font-mono">${formatRupiah(trx.costPrice)}</td>
-                        <td class="py-3 px-4 text-right text-slate-800 font-semibold font-mono">${formatRupiah(trx.sellPrice)}</td>
-                        <td class="py-3 px-4 text-right text-emerald-600 font-bold font-mono">+${formatRupiah(trx.profit)}</td>
-                        <td class="py-3 px-4 text-center whitespace-nowrap">
-                            <button onclick="togglePaymentStatus('${trx.id}')" title="Klik untuk ubah status bayar" class="px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
-                                isLunas 
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' 
-                                : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
-                            }">
-                                <i class="fa-solid ${isLunas ? 'fa-check' : 'fa-clock'} mr-1"></i> ${trx.status}
-                            </button>
-                        </td>
-                        <td class="py-3 px-4 text-center whitespace-nowrap space-x-1">
-                            <button onclick="editTransaction('${trx.id}')" class="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded transition" title="Edit">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                            <button onclick="deleteTransaction('${trx.id}')" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded transition" title="Hapus">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </td>
-                    `;
-
-                    transactionTableBody.appendChild(tr);
-                });
             }
 
-            // Update Counts in Table Footer
-            displayedRowsCount.textContent = filteredTransactions.length;
-            totalRowsCount.textContent = transactions.length;
+            // Calculation maps for Daily Sequence (Nomor Urut Harian)
+            const dailyCounters = {};
 
-            const totalVisibleProfit = filteredTransactions.reduce((sum, t) => sum + (t.profit || 0), 0);
-            visibleProfitSum.textContent = formatRupiah(totalVisibleProfit);
-        }
-
-        // Global Edit Trigger
-        window.editTransaction = function(id) {
-            const trx = transactions.find(t => t.id === id);
-            if (trx) openModal(trx);
-        };
-
-        // Global Toggle Trigger
-        window.togglePaymentStatus = togglePaymentStatus;
-
-        // Global Delete Trigger
-        window.deleteTransaction = deleteTransaction;
-
-        // Update Dashboard Summary Statistics
-        function updateStatistics() {
+            // Calculate total global stats
             let totalOmset = 0;
             let totalModal = 0;
             let totalProfit = 0;
             let countLunas = 0;
             let countBelumLunas = 0;
-            let totalPiutang = 0;
+            let totalBelumLunasRp = 0;
 
-            filteredTransactions.forEach(t => {
-                totalOmset += (t.sellPrice || 0);
-                totalModal += (t.costPrice || 0);
-                totalProfit += (t.profit || 0);
+            filteredData.forEach(item => {
+                totalOmset += item.price;
+                totalModal += item.cost;
+                totalProfit += item.profit;
 
-                if (t.status === 'Lunas') {
+                if (item.status === 'LUNAS') {
                     countLunas++;
                 } else {
                     countBelumLunas++;
-                    totalPiutang += (t.sellPrice || 0);
+                    totalBelumLunasRp += item.price;
                 }
             });
 
-            const marginPercent = totalOmset > 0 ? ((totalProfit / totalOmset) * 100).toFixed(1) : 0;
+            // Calculate total cost used across ALL recorded transactions for deposit calculation
+            const allUsedModal = transactions.reduce((acc, curr) => acc + curr.cost, 0);
+            const remainingDeposit = totalDeposit - allUsedModal;
 
-            statOmset.textContent = formatRupiah(totalOmset);
-            statModal.textContent = formatRupiah(totalModal);
-            statProfit.textContent = formatRupiah(totalProfit);
-            statMargin.textContent = `Margin: ${marginPercent}%`;
-            statCountTrx.textContent = `${filteredTransactions.length} Transaksi ditampilkan`;
+            // Render Rows
+            filteredData.forEach((item) => {
+                const dt = formatDateTime(item.datetime);
+                const dateKey = dt.dateStr; // Format: DD/MM/YYYY
 
-            statLunas.textContent = `${countLunas} Lunas`;
-            statBelumLunas.textContent = `${countBelumLunas} Belum`;
-            statPiutang.textContent = `Belum Dibayar: ${formatRupiah(totalPiutang)}`;
-        }
+                // Increment daily counter for this date
+                if (!dailyCounters[dateKey]) {
+                    dailyCounters[dateKey] = 1;
+                } else {
+                    dailyCounters[dateKey]++;
+                }
 
-        // Helper: Format Rupiah
-        function formatRupiah(number) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                maximumFractionDigits: 0
-            }).format(number || 0);
-        }
+                const dailySeq = dailyCounters[dateKey];
 
-        // Helper: Format Datetime String
-        function formatDateTime(dateTimeStr) {
-            if (!dateTimeStr) return { date: '-', time: '-' };
-            const dt = new Date(dateTimeStr);
-            if (isNaN(dt)) return { date: dateTimeStr, time: '-' };
-
-            const date = dt.toLocaleDateString('id-ID', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100 text-xs sm:text-sm";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center">
+                        <span class="inline-flex items-center justify-center bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-md text-xs">
+                            #${dailySeq}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 whitespace-nowrap">
+                        <div class="font-semibold text-slate-800">${dt.dateStr}</div>
+                        <div class="text-[11px] text-slate-400"><i class="fa-regular fa-clock"></i> ${dt.timeStr} WIB</div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="font-semibold text-slate-800">${item.product}</div>
+                        ${item.note ? `<div class="text-[11px] text-slate-400 italic">${item.note}</div>` : ''}
+                    </td>
+                    <td class="py-3 px-4 text-right font-mono text-slate-600">${formatRupiah(item.cost)}</td>
+                    <td class="py-3 px-4 text-right font-mono font-semibold text-slate-800">${formatRupiah(item.price)}</td>
+                    <td class="py-3 px-4 text-right font-mono font-bold ${item.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}">
+                        ${formatRupiah(item.profit)}
+                    </td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <button onclick="toggleStatus('${item.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm transition ${item.status === 'LUNAS' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-rose-100 text-rose-700 hover:bg-rose-200'}">
+                            <i class="fa-solid ${item.status === 'LUNAS' ? 'fa-check' : 'fa-clock'}"></i> ${item.status}
+                        </button>
+                    </td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="openModal('${item.id}')" class="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Edit">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteTransaction('${item.id}')" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition" title="Hapus">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
-            const time = dt.toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
 
-            return { date, time };
+            // Update Statistics Cards
+            document.getElementById('statOmset').textContent = formatRupiah(totalOmset);
+            document.getElementById('statModal').textContent = formatRupiah(totalModal);
+            document.getElementById('statProfit').textContent = formatRupiah(totalProfit);
+            document.getElementById('statSisaSaldo').textContent = formatRupiah(remainingDeposit);
+            
+            const margin = totalOmset > 0 ? ((totalProfit / totalOmset) * 100).toFixed(1) : 0;
+            document.getElementById('statMargin').textContent = `Margin: ${margin}%`;
+            document.getElementById('statCount').textContent = `${filteredData.length} Transaksi ditampilkan`;
+            document.getElementById('statBelumLunas').textContent = `Belum Dibayar: ${formatRupiah(totalBelumLunasRp)}`;
+
+            // Highlight sisa saldo deposit if low
+            const sisaSaldoEl = document.getElementById('statSisaSaldo');
+            if (remainingDeposit < 50000) {
+                sisaSaldoEl.className = "text-2xl font-bold text-rose-600 mt-1";
+            } else {
+                sisaSaldoEl.className = "text-2xl font-bold text-indigo-600 mt-1";
+            }
+
+            // Update Table Footer Summary
+            document.getElementById('showingCount').textContent = `Menampilkan ${filteredData.length} dari ${transactions.length} total transaksi.`;
+            document.getElementById('filteredProfit').textContent = `Total Profit Tampil: ${formatRupiah(totalProfit)}`;
         }
 
-        // Helper: Escape HTML string to prevent XSS
-        function escapeHtml(str) {
-            return (str || '').replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        // EXPORT TO EXCEL
+        // Export to EXCEL (.xlsx)
         function exportToExcel() {
-            if (filteredTransactions.length === 0) {
-                Swal.fire('Perhatian', 'Tidak ada data untuk diekspor!', 'warning');
+            const data = getFilteredData();
+            if (data.length === 0) {
+                Swal.fire('Data Kosong', 'Tidak ada data untuk diekspor.', 'warning');
                 return;
             }
 
-            const exportData = filteredTransactions.map(t => {
-                const dt = formatDateTime(t.dateTime);
+            const dailyCounters = {};
+            const exportRows = data.map(item => {
+                const dt = formatDateTime(item.datetime);
+                const dateKey = dt.dateStr;
+
+                if (!dailyCounters[dateKey]) {
+                    dailyCounters[dateKey] = 1;
+                } else {
+                    dailyCounters[dateKey]++;
+                }
+
                 return {
-                    'No. Urut Harian': t.dailyNo,
-                    'Tanggal': dt.date,
-                    'Jam': dt.time,
-                    'Nama Produk': t.productName,
-                    'Harga Modal (Rp)': t.costPrice,
-                    'Harga Jual (Rp)': t.sellPrice,
-                    'Keuntungan (Rp)': t.profit,
-                    'Status Pembayaran': t.status,
-                    'Catatan': t.notes || ''
+                    "No. Urut Harian": `#${dailyCounters[dateKey]}`,
+                    "Tanggal": dt.dateStr,
+                    "Jam": dt.timeStr,
+                    "Nama Produk": item.product,
+                    "Harga Modal (Rp)": item.cost,
+                    "Harga Jual (Rp)": item.price,
+                    "Profit (Rp)": item.profit,
+                    "Status": item.status,
+                    "Catatan": item.note || '-'
                 };
             });
 
-            // Calculate Totals
-            const totalModal = filteredTransactions.reduce((acc, t) => acc + t.costPrice, 0);
-            const totalJual = filteredTransactions.reduce((acc, t) => acc + t.sellPrice, 0);
-            const totalUntung = filteredTransactions.reduce((acc, t) => acc + t.profit, 0);
-
-            // Append Summary Row
-            exportData.push({});
-            exportData.push({
-                'No. Urut Harian': 'TOTAL',
-                'Harga Modal (Rp)': totalModal,
-                'Harga Jual (Rp)': totalJual,
-                'Keuntungan (Rp)': totalUntung
-            });
-
-            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const worksheet = XLSX.utils.json_to_sheet(exportRows);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Penjualan");
 
-            // Generate filename based on filter
-            let fileName = 'Rekap_Penjualan_Pulsa';
-            if (filterSpecificDate.value) {
-                fileName += `_${filterSpecificDate.value}`;
-            } else if (filterMonth.value !== 'all') {
-                const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agus", "Sep", "Okt", "Nov", "Des"];
-                fileName += `_${monthNames[filterMonth.value]}_${filterYear.value}`;
-            }
-            fileName += '.xlsx';
+            // Auto-fit column width
+            const max_width = exportRows.reduce((w, r) => Math.max(w, r["Nama Produk"].length), 10);
+            worksheet["!cols"] = [{ wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: Math.max(max_width, 25) }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 20 }];
 
+            const fileName = `Rekap_Penjualan_Counter_${new Date().toISOString().slice(0, 10)}.xlsx`;
             XLSX.writeFile(workbook, fileName);
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil Diekspor!',
-                text: `File Excel ${fileName} telah diunduh.`,
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2500
-            });
         }
 
-        // EXPORT TO PDF
+        // Export to PDF (.pdf)
         function exportToPDF() {
-            if (filteredTransactions.length === 0) {
-                Swal.fire('Perhatian', 'Tidak ada data untuk diekspor!', 'warning');
+            const data = getFilteredData();
+            if (data.length === 0) {
+                Swal.fire('Data Kosong', 'Tidak ada data untuk diekspor.', 'warning');
                 return;
             }
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const doc = new jsPDF('landscape');
 
-            // Title Header
             doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text("LAPORAN REKAPITULASI PENJUALAN COUNTER PULSA", 14, 15);
+            doc.text("Laporan Rekapitulasi Penjualan Counter Pulsa", 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 22);
 
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            
-            let periodText = 'Semua Periode';
-            if (filterSpecificDate.value) {
-                periodText = `Tanggal: ${filterSpecificDate.value}`;
-            } else if (filterMonth.value !== 'all') {
-                const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-                periodText = `Bulan: ${monthNames[filterMonth.value]} ${filterYear.value}`;
-            }
-            doc.text(`Periode Laporan: ${periodText}`, 14, 21);
-            doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}`, 14, 25);
-
-            // Table Columns
-            const tableColumn = ["No", "Waktu", "Produk", "Modal", "Jual", "Untung", "Status"];
-            const tableRows = [];
-
+            const dailyCounters = {};
             let totalModal = 0;
             let totalJual = 0;
-            let totalUntung = 0;
+            let totalProfit = 0;
 
-            filteredTransactions.forEach(t => {
-                const dt = formatDateTime(t.dateTime);
-                totalModal += t.costPrice;
-                totalJual += t.sellPrice;
-                totalUntung += t.profit;
+            const tableData = data.map(item => {
+                const dt = formatDateTime(item.datetime);
+                const dateKey = dt.dateStr;
 
-                const rowData = [
-                    `#${t.dailyNo}`,
-                    `${dt.date}\n${dt.time}`,
-                    t.productName + (t.notes ? `\n(${t.notes})` : ''),
-                    formatRupiah(t.costPrice),
-                    formatRupiah(t.sellPrice),
-                    formatRupiah(t.profit),
-                    t.status
-                ];
-                tableRows.push(rowData);
-            });
-
-            // Summary Row
-            tableRows.push([
-                { content: 'TOTAL', colSpan: 3, styles: { fontStyle: 'bold', halign: 'right' } },
-                { content: formatRupiah(totalModal), styles: { fontStyle: 'bold' } },
-                { content: formatRupiah(totalJual), styles: { fontStyle: 'bold' } },
-                { content: formatRupiah(totalUntung), styles: { fontStyle: 'bold', textColor: [2, 132, 199] } },
-                ''
-            ]);
-
-            // Generate AutoTable
-            doc.autoTable({
-                head: [tableColumn],
-                body: tableRows,
-                startY: 30,
-                theme: 'grid',
-                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
-                bodyStyles: { fontSize: 8 },
-                columnStyles: {
-                    0: { cellWidth: 12, halign: 'center' },
-                    1: { cellWidth: 28 },
-                    2: { cellWidth: 55 },
-                    3: { cellWidth: 26, halign: 'right' },
-                    4: { cellWidth: 26, halign: 'right' },
-                    5: { cellWidth: 26, halign: 'right' },
-                    6: { cellWidth: 20, halign: 'center' }
+                if (!dailyCounters[dateKey]) {
+                    dailyCounters[dateKey] = 1;
+                } else {
+                    dailyCounters[dateKey]++;
                 }
+
+                totalModal += item.cost;
+                totalJual += item.price;
+                totalProfit += item.profit;
+
+                return [
+                    `#${dailyCounters[dateKey]}`,
+                    `${dt.dateStr} ${dt.timeStr}`,
+                    item.product,
+                    formatRupiah(item.cost),
+                    formatRupiah(item.price),
+                    formatRupiah(item.profit),
+                    item.status,
+                    item.note || '-'
+                ];
             });
 
-            // Save PDF
-            let fileName = 'Laporan_Penjualan_Pulsa.pdf';
-            doc.save(fileName);
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil Diekspor!',
-                text: 'File PDF laporan telah berhasil dibuat.',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2500
+            doc.autoTable({
+                startY: 28,
+                head: [['No. Urut', 'Waktu & Tgl', 'Nama Produk', 'Modal', 'Jual', 'Profit', 'Status', 'Catatan']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [2, 132, 199] },
+                styles: { fontSize: 8 }
             });
+
+            // Summary Info on PDF
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total Omset: ${formatRupiah(totalJual)}  |  Total Modal: ${formatRupiah(totalModal)}  |  Total Profit: ${formatRupiah(totalProfit)}`, 14, finalY);
+
+            doc.save(`Rekap_Penjualan_Counter_${new Date().toISOString().slice(0, 10)}.pdf`);
         }
     </script>
 </body>
